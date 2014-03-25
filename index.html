@@ -84,11 +84,8 @@
 		var div = d3.select("body").append("div")
 			.attr("class", "tooltip")
 			.style("opacity", 0);	
-	
-		d3.json("http://10.0.1.2/polaris/a/scada_data/metrics/South_PRV_Flow/data/q?end=1339113540", function(error, data) { 
-			
-			data = data["data"];
 
+		function render(data) {
 			data.forEach(function(d) {
 				d.time = +d.time;
 				d.time *= 1000;			
@@ -116,12 +113,15 @@
 				.style("text-anchor", "end")
 				.text("Temperature");*/
 			
-			// circles	
-			svg.selectAll(".dot") // forms the visual set 
-				.data(data).enter()	// returns a new selection - all the data that has not yet been represented in the visual domain ("Enter" mode)
-			  .append("circle")	// create new visual elements representing the given data elements
+			// Enter
+			svg.selectAll(".dot") 
+				.data(data).enter()	// returns a new selection - all the data elements that are not yet represented
+			  .append("circle")	// create one "circle" element for each data element
 			  	.attr("class", "dot")
-			  	.attr("r", 2.5)
+			  	.attr("r", 2.5);
+
+			// Update
+			svg.selectAll(".dot")
 			  	.attr("cx", function(d) { return x(d.time); })
 			  	.attr("cy", function(d) { return y(d.value); })
 			  	.style("fill", color)	
@@ -138,9 +138,28 @@
 			  			.duration(500)
 			  			.style("opacity", 0);
 			  	});
-				
+
+			// Exit
+			svg.selectAll(".dot")
+				.data(data)
+				.exit()
+				.remove();
+		}
+
+		d3.json("http://10.0.1.2/polaris/a/scada_data/metrics/South_PRV_Flow/data/q?end=1339113540", function(error, json) { 
+			var data = json["data"];
+			render(data);
 		}); 
-		
+
+		setInterval( function () {
+			d3.json("http://10.0.1.2/polaris/a/scada_data/metrics/South_PRV_Flow/data/q?end=1339113540", function(error, json) { 
+			var data = json["data"];
+			data.shift();
+			data.push({time: Math.round(1339027140 + Math.random() * 87000), value: Math.round(Math.random() * 2000)});
+			render(data);
+			});
+		}, 500); 
+
         </script>
     </body>
 </html>
