@@ -1,3 +1,5 @@
+# Access NOAA temperature data for Cincinnati and convert it into JSON 
+
 import json
 import urllib.request
 import gzip
